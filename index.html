@@ -123,6 +123,16 @@
   tr.tier-low td.price-cell{box-shadow:inset 3px 0 0 var(--blue)}
   tr.tier-high td.price-cell{box-shadow:inset 3px 0 0 var(--ink)}
 
+  .badge{cursor:pointer}
+  .tip{
+    position:fixed;z-index:50;max-width:260px;
+    background:var(--ink);color:var(--bg);
+    font-size:12.5px;font-weight:500;line-height:1.45;
+    padding:9px 12px;border-radius:10px;
+    box-shadow:0 8px 24px rgba(31,31,31,.25);
+    animation:tipIn .18s ease both;pointer-events:none;
+  }
+  @keyframes tipIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
   .empty{padding:56px 24px;text-align:center;color:var(--ink-soft)}
   .empty b{display:block;font-family:'Riviera','Manrope',serif;font-weight:normal;text-transform:uppercase;font-size:24px;color:var(--ink);margin-bottom:6px}
 
@@ -2001,6 +2011,30 @@ function render(){
   });
 }
 render();
+
+/* Подсказка по тапу на бейдж (на телефонах title не работает) */
+let tipEl = null;
+function hideTip(){ if (tipEl) { tipEl.remove(); tipEl = null; } }
+document.addEventListener('click', e => {
+  const b = e.target.closest('.badge');
+  if (!b) { hideTip(); return; }
+  e.stopPropagation();
+  const text = b.getAttribute('title');
+  if (!text) return;
+  if (tipEl && tipEl.dataset.for === text) { hideTip(); return; }
+  hideTip();
+  tipEl = document.createElement('div');
+  tipEl.className = 'tip';
+  tipEl.textContent = text;
+  tipEl.dataset.for = text;
+  document.body.appendChild(tipEl);
+  const r = b.getBoundingClientRect(), t = tipEl.getBoundingClientRect();
+  let x = Math.min(Math.max(8, r.left + r.width/2 - t.width/2), window.innerWidth - t.width - 8);
+  let y = r.top - t.height - 8;
+  if (y < 8) y = r.bottom + 8;
+  tipEl.style.left = x + 'px'; tipEl.style.top = y + 'px';
+});
+window.addEventListener('scroll', hideTip, {passive: true});
 </script>
 </body>
 </html>
